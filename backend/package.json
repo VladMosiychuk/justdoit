@@ -7,7 +7,7 @@
     "dist"
   ],
   "scripts": {
-    "prebuild": "pnpm --filter @justdoit/database generate",
+    "prebuild": "pnpm --dir .. db:deploy:production && pnpm --dir .. --filter @justdoit/database generate",
     "build": "nest build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "nest start",

@@ -10,6 +10,8 @@
     "db:migrate": "pnpm --filter @justdoit/database migrate",
     "db:migrate:deploy": "pnpm --filter @justdoit/database migrate:deploy",
     "db:seed": "pnpm --filter @justdoit/database seed",
+    "db:deploy": "pnpm db:migrate:deploy && pnpm db:seed",
+    "db:deploy:production": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:deploy; else echo \"Skipping production database deploy for VERCEL_ENV=${VERCEL_ENV:-local}\"; fi",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose stop postgres",
     "docker:up": "docker compose up --build",
