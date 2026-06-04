@@ -4,6 +4,7 @@
   "private": true,
   "description": "Just Do It - a full-stack todo app with categories",
   "scripts": {
+    "postinstall": "pnpm db:generate",
     "build:packages": "pnpm --filter @justdoit/contracts build && pnpm db:generate && pnpm --filter @justdoit/database build",
     "db:generate": "pnpm --filter @justdoit/database generate",
     "db:migrate": "pnpm --filter @justdoit/database migrate",
