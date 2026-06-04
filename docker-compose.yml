@@ -1,0 +1,101 @@
+x-app-build: &app-build
+  context: .
+  dockerfile: Dockerfile
+  args:
+    DATABASE_URL: postgresql://justdoit:justdoit@postgres:5432/justdoit?schema=public
+    DIRECT_DATABASE_URL: postgresql://justdoit:justdoit@postgres:5432/justdoit?schema=public
+    NEXT_PUBLIC_API_URL: http://localhost:3001
+    API_INTERNAL_URL: http://backend:3001
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: justdoit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: justdoit
+      POSTGRES_PASSWORD: justdoit
+      POSTGRES_DB: justdoit
+    ports:
+      - "5432:5432"
+    volumes:
+      - justdoit-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U justdoit -d justdoit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: justdoit-migrate
+    container_name: justdoit-migrate
+    build:
+      <<: *app-build
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://justdoit:justdoit@postgres:5432/justdoit?schema=public
+      DIRECT_DATABASE_URL: postgresql://justdoit:justdoit@postgres:5432/justdoit?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    image: justdoit-backend
+    container_name: justdoit-backend
+    build:
+      <<: *app-build
+      target: backend
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://justdoit:justdoit@postgres:5432/justdoit?schema=public
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3001/categories').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    image: justdoit-frontend
+    container_name: justdoit-frontend
+    build:
+      <<: *app-build
+      target: frontend
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      API_INTERNAL_URL: http://backend:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  justdoit-postgres-data:
+    driver: local

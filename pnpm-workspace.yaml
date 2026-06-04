@@ -1,0 +1,26 @@
+packages:
+  - "frontend"
+  - "backend"
+  - "packages/*"
+
+# Allow these dependencies to run their install/build scripts (pnpm v11 blocks
+# lifecycle scripts by default). Prisma needs them to generate its engines.
+onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
+
+# msw doesn't need its build script (its worker is set up via `msw init`), so
+# acknowledge ignoring it to keep pnpm from failing on the unapproved build.
+ignoredBuiltDependencies:
+  - msw
+
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  msw: false
+  prisma: true

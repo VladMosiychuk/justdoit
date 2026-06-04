@@ -1,0 +1,30 @@
+{
+  "name": "justdoit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Just Do It - a full-stack todo app with categories",
+  "scripts": {
+    "build:packages": "pnpm --filter @justdoit/contracts build && pnpm db:generate && pnpm --filter @justdoit/database build",
+    "db:generate": "pnpm --filter @justdoit/database generate",
+    "db:migrate": "pnpm --filter @justdoit/database migrate",
+    "db:migrate:deploy": "pnpm --filter @justdoit/database migrate:deploy",
+    "db:seed": "pnpm --filter @justdoit/database seed",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose stop postgres",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "dev:backend": "pnpm --filter @justdoit/backend start:dev",
+    "dev:frontend": "pnpm --filter @justdoit/frontend dev",
+    "dev": "pnpm build:packages && concurrently -n backend,frontend -c blue,green \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "build": "pnpm build:packages && pnpm --filter @justdoit/backend build && pnpm --filter @justdoit/frontend build",
+    "test": "pnpm --filter @justdoit/backend test",
+    "typecheck": "pnpm build:packages && pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "packageManager": "pnpm@11.1.2"
+}
